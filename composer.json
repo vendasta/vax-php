@@ -1,0 +1,20 @@
+{
+  "name": "vendasta/vax",
+  "description": "Vendasta API Extensions for PHP",
+  "type": "library",
+  "require": {
+    "php": ">=7.1",
+    "grpc/grpc": "^v1.1.0",
+    "guzzlehttp/guzzle": "^6.3",
+    "mdanter/ecc": "^0.5.0",
+    "google/protobuf": "^3.6.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Vendasta\\Vax\\": "./src"
+    }
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^7"
+  }
+}
