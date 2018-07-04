@@ -1,5 +1,7 @@
 vendor/
+composer.phar
 composer.lock
-.DS_Store
+composer-test.lock
 
-**/.idea/
+.idea
+.DS_STORE
