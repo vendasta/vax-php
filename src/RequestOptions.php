@@ -2,6 +2,12 @@
 
 namespace Vendasta\Vax;
 
+/**
+ * Class RequestOptions
+ * @package Vendasta\Vax
+ *
+ * Possible options that can be used with any VAX Request.
+ */
 final class RequestOptions
 {
     /**

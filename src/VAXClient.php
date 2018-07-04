@@ -41,7 +41,9 @@ class Options
 
 class VAXClient
 {
-    // $default_timeout is a number in milliseconds
+    /**
+     * $default_timeout is a number in milliseconds
+     */
     private $default_timeout;
 
     /**

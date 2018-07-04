@@ -2,7 +2,12 @@
 
 namespace Vendasta\Vax;
 
-
+/**
+ * Class Environment
+ * @package Vendasta\Vax
+ *
+ * Environment keys that can be used.
+ */
 abstract class Environment
 {
     /**

@@ -101,6 +101,10 @@ class HTTPClient extends VAXClient
         return $obj;
     }
 
+    /**
+     * @param string $path
+     * @return string full url to call
+     */
     private function buildURL(string $path): string {
         if ($this->secure) {
             $scheme = "https";
@@ -114,7 +118,6 @@ class HTTPClient extends VAXClient
     /**
      * @param HandlerStack $stack
      * @param string $scope
-     * @param Environment $env
      */
     private function addAuthMiddleware(HandlerStack $stack, string $scope)
     {
