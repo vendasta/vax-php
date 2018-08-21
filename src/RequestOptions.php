@@ -21,4 +21,10 @@ final class RequestOptions
      * to include the authorization token on the request.
      */
     const INCLUDE_TOKEN = 'include_token';
+
+    /**
+     * include_token: (RetryOptions, default=null) Class describing retry behaviour.
+     * Look at Vendasta\Vax\RetryOptions for more information.
+     */
+    const RETRY_OPTIONS = 'retry_options';
 }
