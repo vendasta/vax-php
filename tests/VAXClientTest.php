@@ -64,7 +64,7 @@ class VAXClientTest extends TestCase
                 "expected" => true,
             ],
             [
-                "name" => "Is not within max call duration: 2 seconds is before 1",
+                "name" => "Is not within max call duration: 2 seconds is after 1",
                 "retry_time" => 2000,
                 "max_time" => microtime(true) + 1,
                 "expected" => false,

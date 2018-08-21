@@ -74,7 +74,7 @@ class HTTPClient extends VAXClient
         $method = (array_key_exists("method", $options) ? $options["method"] : "POST");
         $json = $request_class->serializeToJsonString();
 
-        $maxTime = $this->getMaxCallDuration($opts);
+        $max_time = $this->getMaxCallDuration($opts);
 
         while (1) {
             try {
@@ -82,13 +82,12 @@ class HTTPClient extends VAXClient
                 break;
             } catch (SDKException $e) {
                 if ($opts->retry_options != null) {
-                    // This needs to check for codes to retry on instead.
                     if (!$opts->retry_options->shouldRetry($e->getCode())) {
                         throw $e;
                     }
 
                     $time = $opts->retry_options->pause();
-                    if ($this->isRetryWithinMaxCallDuration($time, $maxTime)) {
+                    if ($this->isRetryWithinMaxCallDuration($time, $max_time)) {
                         // Convert milliseconds to microseconds
                         usleep($time * 1000);
                     } else {

@@ -35,22 +35,22 @@ class GRPCClient extends VAXClient
         $this->secure = $secure;
     }
 
-    protected function getClientOptions(): array {
+    protected function getClientOptions(): array
+    {
         return [
             'credentials' => ($this->secure ? ChannelCredentials::createSsl() : ChannelCredentials::createInsecure()),
         ];
     }
 
-    private function buildGRPCOptions(array $options = []): array
+    private function buildGRPCOptions(Options $opts): array
     {
-        $opts = $this->buildVAXOptions($options);
         $grpcOpts = [
             'timeout' => $opts->timeout * 1000 // microseconds,
         ];
 
         if ($opts->include_token) {
             $auth = $this->auth;
-            $grpcOpts['call_credentials_callback'] = function() use ($auth) {
+            $grpcOpts['call_credentials_callback'] = function () use ($auth) {
                 return ['authorization' => ['Bearer ' . $auth->fetchToken()]];
             };
         }
@@ -67,17 +67,44 @@ class GRPCClient extends VAXClient
      */
     protected function doRequest(callable $client_call, Message $req, array $options = [])
     {
-        list($response, $status) = $client_call($req, [], $this->buildGRPCOptions($options))->wait();
-        if ($status->code) {
-            if ($status->code == 16) {
-                $this->auth->invalidateToken();
-                list($response, $status) = $client_call($req, [], $this->buildGRPCOptions($options))->wait();
-                if ($status->code) {
-                    throw new SDKException($status->details, $status->code);
+        $opts = $this->buildVAXOptions($options);
+        $max_time = $this->getMaxCallDuration($opts);
+
+        while (1) {
+            try {
+                return $this->call($client_call, $req, $opts);
+            } catch (SDKException $e) {
+                if ($opts->retry_options != null) {
+                    if (!$opts->retry_options->shouldRetry($e->getCode())) {
+                        throw $e;
+                    }
+
+                    $time = $opts->retry_options->pause();
+                    if ($this->isRetryWithinMaxCallDuration($time, $max_time)) {
+                        // Convert milliseconds to microseconds
+                        usleep($time * 1000);
+                    } else {
+                        throw $e;
+                    }
+                } else {
+                    throw $e;
                 }
-            } else {
-                throw new SDKException($status->details, $status->code);
             }
+        }
+    }
+
+    /**
+     * @param callable $client_call
+     * @param Message $req
+     * @param Options $opts
+     * @return Message
+     * @throws SDKException
+     */
+    protected function call(callable $client_call, Message $req, Options $opts)
+    {
+        list($response, $status) = $client_call($req, [], $this->buildGRPCOptions($opts))->wait();
+        if ($status->code) {
+            throw new SDKException($status->details, GRPCCodes::ToHTTPStatusCode($status->code));
         }
         return $response;
     }
