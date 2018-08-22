@@ -2,43 +2,6 @@
 
 namespace Vendasta\Vax;
 
-class Options
-{
-    /**
-     * Stored options for \RequestOptions::INCLUDE_TOKEN
-     */
-    public $include_token = true;
-
-    /**
-     * Stored options for \RequestOptions::TIMEOUT
-     */
-    public $timeout;
-
-    /**
-     * Options constructor.
-     * @param float $default_timeout
-     */
-    public function __construct(float $default_timeout)
-    {
-        $this->timeout = $default_timeout;
-    }
-
-    /**
-     * @param array $options possible keys:
-     *              \Vendasta\Vax\RequestOptions::*
-     * @return Options
-     */
-    public function FromOptions(array $options)
-    {
-        if (array_key_exists(RequestOptions::TIMEOUT, $options)) {
-            $this->timeout = $options[RequestOptions::TIMEOUT];
-        }
-        if (array_key_exists(RequestOptions::INCLUDE_TOKEN, $options)) {
-            $this->include_token = $options[RequestOptions::INCLUDE_TOKEN];
-        }
-    }
-}
-
 class VAXClient
 {
     /**
@@ -64,5 +27,23 @@ class VAXClient
         $opts = new Options($this->default_timeout);
         $opts->FromOptions($options);
         return $opts;
+    }
+
+    /**
+     * @param Options $opts calculated request options
+     * @return float (timestamp) future timestamp at which this call should fail.
+     */
+    protected function getMaxCallDuration(Options $opts): float {
+        return microtime(true) + (($opts->retry_options != null) ?
+                ($opts->retry_options->getMaxCallDuration() / 1000) : 60);
+    }
+
+    /**
+     * @param float $retryTime (milliseconds) time in which the request will retry again
+     * @param float $maxTime (timestamp) when this call reaches it's maximum duration
+     * @return bool whether or not to wait for the retry
+     */
+    protected function isRetryWithinMaxCallDuration(float $retryTime, float $maxTime): bool {
+        return microtime(true) + ($retryTime / 1000) < $maxTime;
     }
 }

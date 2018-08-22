@@ -72,19 +72,31 @@ class HTTPClient extends VAXClient
 
         $client = ($opts->include_token ? $this->authed_client : $this->unauthed_client);
         $method = (array_key_exists("method", $options) ? $options["method"] : "POST");
-
         $json = $request_class->serializeToJsonString();
-        try {
-            $response = $client->request(
-                $method,
-                $this->buildURL($path),
-                [
-                    RequestOptions::BODY => $json,
-                    RequestOptions::TIMEOUT => $opts->timeout / 1000 // seconds
-                ]
-            );
-        } catch (GuzzleException $e) {
-            throw new SDKException("Error calling " . $path . " (code: ". $e->getCode() . "): " . $e->getMessage(), $e->getCode());
+
+        $max_time = $this->getMaxCallDuration($opts);
+
+        while (1) {
+            try {
+                $response = $this->call($client, $method, $path, $json, $opts->timeout);
+                break;
+            } catch (SDKException $e) {
+                if ($opts->retry_options != null) {
+                    if (!$opts->retry_options->shouldRetry($e->getCode())) {
+                        throw $e;
+                    }
+
+                    $time = $opts->retry_options->pause();
+                    if ($this->isRetryWithinMaxCallDuration($time, $max_time)) {
+                        // Convert milliseconds to microseconds
+                        usleep($time * 1000);
+                    } else {
+                        throw $e;
+                    }
+                } else {
+                    throw $e;
+                }
+            }
         }
 
         $obj = new $reply_class();
@@ -99,6 +111,33 @@ class HTTPClient extends VAXClient
         }
 
         return $obj;
+    }
+
+    /**
+     * Make the request
+     * @param Client $client the http client
+     * @param string $method method of the call
+     * @param string $path path being called
+     * @param string $json request json
+     * @param float $timeout timeout in milliseconds
+     * @return mixed|ResponseInterface response json
+     * @throws SDKException
+     */
+    private function call(Client $client, string $method, string $path, string $json, float $timeout) {
+        try {
+            return $client->request(
+                $method,
+                $this->buildURL($path),
+                [
+                    RequestOptions::BODY => $json,
+                    RequestOptions::TIMEOUT => $timeout / 1000 // seconds
+                ]
+            );
+        } catch (GuzzleException $e) {
+            // cURL doesn't return a 408 on timeouts, and also sets the code the 0... :
+            $code = (strpos($e->getMessage(), "cURL error 28") !== false) ? 408 : $e->getCode();
+            throw new SDKException("Error calling " . $path . " (code: ". $code . "): " . $e->getMessage(), $code);
+        }
     }
 
     /**
