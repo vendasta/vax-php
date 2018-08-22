@@ -134,7 +134,9 @@ class HTTPClient extends VAXClient
                 ]
             );
         } catch (GuzzleException $e) {
-            throw new SDKException("Error calling " . $path . " (code: ". $e->getCode() . "): " . $e->getMessage(), $e->getCode());
+            // cURL doesn't return a 408 on timeouts, and also sets the code the 0... :
+            $code = (strpos($e->getMessage(), "cURL error 28") !== false) ? 408 : $e->getCode();
+            throw new SDKException("Error calling " . $path . " (code: ". $code . "): " . $e->getMessage(), $code);
         }
     }
 
