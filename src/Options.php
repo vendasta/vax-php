@@ -28,7 +28,7 @@ class Options
     public function __construct(float $default_timeout, bool $include_token = null, RetryOptions $retry_options = null)
     {
         $this->timeout = $default_timeout;
-        $this->include_token = $include_token;
+        $this->include_token = ($include_token != null) ? $include_token : true;
         $this->retry_options = $retry_options;
     }
 
