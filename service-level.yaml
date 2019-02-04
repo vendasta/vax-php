@@ -1,0 +1,5 @@
+services:
+ - name: vax-php
+   language: php
+   owner: no-owner
+   nonServiceType: library
