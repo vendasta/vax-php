@@ -160,19 +160,23 @@ class HTTPClient extends VAXClient
      */
     private function addAuthMiddleware(HandlerStack $stack, string $scope)
     {
-        function authMiddleware(string $scope) {
-            $auth = new FetchAuthTokenCache(new FetchVendastaAuthToken($scope));
-            return function (callable $handler) use ($auth) {
-                return function (RequestInterface $request, array $options) use ($handler, $auth) {
-                    $request = $request->withHeader('authorization', 'Bearer ' . $auth->fetchToken());
-                    $promise = $handler($request, $options);
-                    return $promise->then(
-                        function (ResponseInterface $response) use ($auth) {
-                            return $response;
-                        }
-                    );
+        if(!defined('__INCLUDED_VENDASTA_HTTP_CLIENT__')) {
+            define('__INCLUDED_VENDASTA_HTTP_CLIENT__', 1);
+            function authMiddleware(string $scope)
+            {
+                $auth = new FetchAuthTokenCache(new FetchVendastaAuthToken($scope));
+                return function (callable $handler) use ($auth) {
+                    return function (RequestInterface $request, array $options) use ($handler, $auth) {
+                        $request = $request->withHeader('authorization', 'Bearer ' . $auth->fetchToken());
+                        $promise = $handler($request, $options);
+                        return $promise->then(
+                            function (ResponseInterface $response) use ($auth) {
+                                return $response;
+                            }
+                        );
+                    };
                 };
-            };
+            }
         }
         $stack->push(Middleware::retry(function($retry, $request, $value, $reason) {
             if ($value !== NULL) {
