@@ -169,7 +169,12 @@ class HTTPClient extends VAXClient
         $stack->push(self::authMiddleware($scope));
     }
 
-    private function authMiddleware(string $scope) {
+    /**
+     * @param string $scope
+     * @return \Closure
+     */
+    private function authMiddleware(string $scope)
+    {
         $auth = new FetchAuthTokenCache(new FetchVendastaAuthToken($scope));
         return function (callable $handler) use ($auth) {
             return function (RequestInterface $request, array $options) use ($handler, $auth) {
