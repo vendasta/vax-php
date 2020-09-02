@@ -23,7 +23,7 @@ class FetchAuthTokenCache implements FetchAuthToken
             $this->tokenExpiry = self::parseExpiry($this->token);
         }
 
-        if ($this->token == null) {
+        if ($this->token == "") {
             throw new Exception("Could not refresh token");
         }
 
