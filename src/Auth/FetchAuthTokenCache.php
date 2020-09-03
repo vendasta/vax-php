@@ -18,12 +18,12 @@ class FetchAuthTokenCache implements FetchAuthToken
     public function fetchToken(): string
     {
         $now = time();
-        if ($this->token == null || ($this->tokenExpiry != null && $this->tokenExpiry < $now)) {
+        if (empty($this->token) || (!empty($this->tokenExpiry) && $this->tokenExpiry < $now)) {
             $this->token = $this->fetcher->fetchToken();
             $this->tokenExpiry = self::parseExpiry($this->token);
         }
 
-        if ($this->token == null) {
+        if (empty($this->token)) {
             throw new Exception("Could not refresh token");
         }
 

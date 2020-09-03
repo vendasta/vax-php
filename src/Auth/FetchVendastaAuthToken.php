@@ -52,7 +52,7 @@ class FetchVendastaAuthToken implements FetchAuthToken
         $this->key_id = $jsonKey['private_key_id'];
 
         $this->client = new Client([
-            'timeout' => 5,
+            'timeout' => 10, // 10 seconds
         ]);
     }
 
@@ -75,7 +75,7 @@ class FetchVendastaAuthToken implements FetchAuthToken
             // Handle this exception
         }
         if ($response == null) {
-            return null;
+            return "";
         }
         $body = (string)$response->getBody();
         $json_body = json_decode($body);
