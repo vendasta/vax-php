@@ -102,7 +102,7 @@ class HTTPClient extends VAXClient
         $obj = new $reply_class();
         try {
             if (method_exists($obj, 'mergeFromJsonString')) {
-                $obj->mergeFromJsonString((string) $response->getBody());
+                $obj->mergeFromJsonString((string)$response->getBody(), true);
             } else {
                 throw new SDKException("Could not parse obj.");
             }
