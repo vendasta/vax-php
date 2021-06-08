@@ -1,3 +1,6 @@
+# 1.3.0
+- Ignore new fields on the SDK by default
+
 # 1.1.2
 - Increase the `FetchVendastaAuthToken` to have a 10s timeout instead of 5s
     - It's a reasonable case for the api takes longer than 5s
